@@ -1,15 +1,15 @@
 import fs from 'fs';
 
-function fields_filled(j, optional_fields){
-  let required_fields = ['id', 'category_id', 'parent_category_id', 'image_url'];
-  //optional fields could be: group_id, product_url, available. Or anything else, really
+function fields_filled(j, optional_fields = []){
+  let required_fields = ['id', 'category', 'brand', 'price', 'discount_price', 'sizes', 'colors', 'photo_urls', 'discovery_time', 'update_time', 'send_time'];
+  //optional fields could be anything else, really
   required_fields = required_fields.concat(optional_fields);
   let problems = [];
   for (let i = 0; i < j.length; i++){
     for (let field_name of required_fields){
       if (!j[i][field_name])
         problems.push( `#${i} doesn't have field '${field_name}'!`);
-      else if (j[i][field_name].length < 2)
+      else if (j[i][field_name].length < 2 && typeof j[i][field_name] == 'string')
         problems.push( `#${i}'s '${field_name}' is less than 2 chars in length - ${j[i][field_name]}!\n`);
     }
   }
@@ -47,5 +47,5 @@ let stdin = ''
 process.stdin.on('data', data => stdin += data);
 process.stdin.on('end', async () => {
   let j = JSON.parse(stdin);
-  full_check(j);
+  console.log(fields_filled(j));
 });
