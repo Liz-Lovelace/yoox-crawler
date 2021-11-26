@@ -21,7 +21,7 @@ function duplicates(j){
   let duplicates = [];
   let duplicate_ids = [];
   for (let i = 0; i < j.length; i++){
-    for (let key of ['id', 'image_url', 'product_url']){
+    for (let key of ['id', 'photo_urls']){
       if (data_dump.has(j[i][key])){
         duplicates.push(`#${i} has a duplicate field '${key}' - ${j[i][key]}`);
         duplicate_ids.push(i);
@@ -32,20 +32,33 @@ function duplicates(j){
   return [duplicates, duplicate_ids];
 }
 
+function simple_duplicates(arr){
+  let set_arr = new Set();
+  for (let i = 0; i < arr.length; i++){
+    if (set_arr.has(arr[i]))
+      console.log(`#${i} is a duplicate (${arr[i]})`);
+    else
+      set_arr.add(arr[i]);
+  }
+}
+
 function full_check(j){
   let problems = [];
-  problems = problems.concat(fields_filled(j, ['product_url']));
-  let dups = duplicates(j, ['product_url']);
+  problems = problems.concat(fields_filled(j));
+  let dups = duplicates(j);
   problems = problems.concat(dups[0]);
   for (let i = 0; i < problems.length; i++){
     console.log(problems[i]);
   }
   console.log(`full_check done, total elements - ${j.length}`);
+  console.log(`There are ${dups[0].length} duplicates`);
 }
 
 let stdin = ''
 process.stdin.on('data', data => stdin += data);
 process.stdin.on('end', async () => {
   let j = JSON.parse(stdin);
-  console.log(fields_filled(j));
+  //full_check(j);
+  simple_duplicates(j);
+  console.log(j.length)
 });

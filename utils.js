@@ -1,6 +1,14 @@
 import axios from 'axios';
 import fetch from 'node-fetch';
 
+export function splitIntoBatches(arr, batch_size){
+  let batches = [];
+  for (let i = 0; i < arr.length; i+= batch_size){
+    batches.push(arr.slice(i, i + batch_size));
+  }
+  return batches;
+}
+
 export function extractMaxCatalog(html){
   let regex = RegExp('event_pv."sr_totalpages"] = "(.*)";');
   //this lags behind by like 10 pages for some reason!
@@ -12,9 +20,6 @@ export async function sleep(ms){
 }
 
 export async function fetchYooxHtml(link){
-//  let fetch_obj = {headers: headers_obj};
-//  let res = await fetch(link, fetch_obj);
-//  return await res.text();
   return (await axios.get(link)).data;
 }
 

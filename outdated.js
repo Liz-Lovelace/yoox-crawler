@@ -32,33 +32,3 @@ function getItemsFromCatalog(html) {
   }
   return itemProperties;
 }
-
-async function writeRawJson(){
-  let items = []
-  for (let i = 1; i <=544; i++){
-    //this is wrong i'm pretty sure
-    let html = await fs.promises.readFile(new URL('./data/catalogs/womens-shoes/fff.html', import.meta.url), 'utf8');
-    let catalogItems = getItems(html);
-    findBrokenItems(catalogItems);
-    items = items.concat(catalogItems);
-    console.log(i + ' ' + i / 544 * 100 + '%')
-  }
-  console.log(items.length);
-  console.log('writing...');
-  await fs.promises.writeFile(new URL('./raw.json', import.meta.url), JSON.stringify(items));
-  console.log('done!');
-}
-
-async function main() {
-  let all_items = [];
-  for (let i = 1; i <= 544; i++){
-    let catalogHtml = await fs.promises.readFile(new URL(`./data/catalogs/womens-shoes/${i}.html`, import.meta.url), 'utf8');
-    let raw_items = getItems(catalogHtml);
-    let ABAi_items = rawToABAi(raw_items);
-    all_items = all_items.concat(ABAi_items);
-    if (i % 10 == 0)
-      console.log(`${i}  ${(i/544*100).toFixed(1)}%`)
-  }
-  let all_items_str = JSON.stringify(all_items);
-  await fs.promises.writeFile(new URL('./unchecked_items.json', import.meta.url), all_items_str);
-}
