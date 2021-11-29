@@ -54,11 +54,20 @@ function full_check(j){
   console.log(`There are ${dups[0].length} duplicates`);
 }
 
+function removeByIndex(j, death_note){
+  for (let i = 0; i < death_note.length; i++){
+    j.splice(death_note[i] - i, 1);
+  }
+  return j;
+}
+
 let stdin = ''
 process.stdin.on('data', data => stdin += data);
 process.stdin.on('end', async () => {
   let j = JSON.parse(stdin);
-  //full_check(j);
-  simple_duplicates(j);
   console.log(j.length)
+  j = removeByIndex(j, duplicates(j)[1]);
+  full_check(j);
+  console.log(j.length)
+  await fs.promises.writeFile(new URL('./goood.json', import.meta.url), JSON.stringify(j));
 });

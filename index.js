@@ -1,7 +1,7 @@
 import cheerio from 'cheerio';
 import fs from 'fs';
 import { URL } from 'url';
-import {fetchYooxHtml, extractMaxCatalog, sleep, extractProductInfo, splitIntoBatches} from './utils.js'
+import {fetchYooxHtml, extractMaxCatalog, sleep, extractProductInfo, splitIntoBatches, gatherResultFragments} from './utils.js'
 
 function linksFromCatalog(html) {
   //this operation takes by far the most time
@@ -108,10 +108,9 @@ async function processLinks(links){
 }
 
 async function main(){
-  let links = JSON.parse(await fs.promises.readFile(new URL('./data/all_links.json', import.meta.url), 'utf8'));
+  let links = JSON.parse(await fs.promises.readFile(new URL('./data/yoox/all_links.json', import.meta.url), 'utf8'));
   let batch_size = 100;
   let link_batches = splitIntoBatches(links, batch_size);
-  return;
   for (let batch_i = 0; batch_i <= link_batches.length; batch_i++){
     console.time(`fetched ${batch_size} links, batch ${batch_i} / ${link_batches.length}`);
     let results = await processLinks(link_batches[batch_i]);
@@ -122,9 +121,7 @@ async function main(){
 }
 
 async function test(){
-  let links = await getAllLinks();
-  let str = JSON.stringify(links);
-  await fs.promises.writeFile(new URL('./data/all_links.json', import.meta.url), str);
+  let results = await gatherResultFragments(new URL('./data/yoox/result_shards/', import.meta.url));
+  await fs.promises.writeFile(new URL('./data/yoox/result_15000.json', import.meta.url), JSON.stringify(results));
 }
-
-test()
+test();

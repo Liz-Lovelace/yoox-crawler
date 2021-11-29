@@ -1,5 +1,16 @@
 import axios from 'axios';
 import fetch from 'node-fetch';
+import fs from 'fs';
+export async function gatherResultFragments(folder_url){
+  let results = []
+  let shard_names = await fs.promises.readdir(folder_url);
+  for (let i = 0; i < shard_names.length - 1; i++){
+    let shard = await fs.promises.readFile(new URL(`./${i}.json`, folder_url), 'utf8');
+    results = results.concat(JSON.parse(shard));
+  }
+  return results;
+}
+
 
 export function splitIntoBatches(arr, batch_size){
   let batches = [];
