@@ -1,39 +1,32 @@
-import axios from 'axios';
-import fetch from 'node-fetch';
-import fs from 'fs';
-export async function gatherResultFragments(folder_url){
-  let results = []
-  let shard_names = await fs.promises.readdir(folder_url);
-  for (let i = 0; i < shard_names.length - 1; i++){
-    let shard = await fs.promises.readFile(new URL(`./${i}.json`, folder_url), 'utf8');
-    results = results.concat(JSON.parse(shard));
-  }
-  return results;
-}
+import cheerio from 'cheerio';
 
-
-export function splitIntoBatches(arr, batch_size){
-  let batches = [];
-  for (let i = 0; i < arr.length; i+= batch_size){
-    batches.push(arr.slice(i, i + batch_size));
-  }
-  return batches;
-}
-
+// this funciton finds the total number of catalogs of
+// a category from a page of this category
 export function extractMaxCatalog(html){
   let regex = RegExp('event_pv."sr_totalpages"] = "(.*)";');
-  //this lags behind by like 10 pages for some reason!
   return parseInt(regex.exec(html)[1]);
 }
 
-export async function sleep(ms){
-  return new Promise(resolve => setTimeout(resolve, ms));
+// this function gets all product links from catalog page
+export function linksFromCatalog(html){
+  //this operation takes by far the most time
+  let $ = cheerio.load(html);
+  let items = $('.itemContainer');
+  let links = [];
+  for (let i = 0; i < items.length; i++){
+    // sweeps sold out items under the rug
+    if (items[i].attribs['class'].indexOf('soldout') != -1)
+      continue;
+    let item$ = cheerio.load(items[i]);
+    let link = 'https://yoox.com' + item$('.itemImg > a')['0'].attribs['href'];
+    links.push(link);
+  }
+  return links;
 }
 
-export async function fetchYooxHtml(link){
-  return (await axios.get(link)).data;
-}
 
+// this function finds all data from a product page
+// by parsing json data in a certain part of it
 export function extractProductInfo(html){
   let data_regex = RegExp('<script id="__NEXT_DATA__" type="application/json">(.*)</script>');
   let data = JSON.parse(data_regex.exec(html)[1]).props;
@@ -90,6 +83,7 @@ export function extractProductInfo(html){
   
   // 12. ID товара на сайте доноре
     //???
+  
   // 13. Статус - в наличии или нет
     //TODO: implement
   
@@ -107,6 +101,7 @@ export function extractProductInfo(html){
   
   // 17. Сортировка. (порядок сортировки, выставляется автоматически при парсинге)
     // ???
+  
   // 18. Коллекция
     //not found
   return info;
