@@ -9,8 +9,9 @@ function fields_filled(j, optional_fields = []){
     for (let field_name of required_fields){
       if (!j[i][field_name])
         problems.push( `#${i} doesn't have field '${field_name}'!`);
-      else if (j[i][field_name].length < 2 && typeof j[i][field_name] == 'string')
+      else if (j[i][field_name].length < 2 && typeof j[i][field_name] == 'string'){
         problems.push( `#${i}'s '${field_name}' is less than 2 chars in length - ${j[i][field_name]}!\n`);
+      }
     }
   }
   return problems;
@@ -61,13 +62,18 @@ function removeByIndex(j, death_note){
   return j;
 }
 
+function visualCheck(j, n = 1000){
+  for (let i = 0; i < j.length; i+=n){
+    console.log(`======== ${i} ========`);
+    console.log(j[i]);
+  }
+}
+
 let stdin = ''
 process.stdin.on('data', data => stdin += data);
 process.stdin.on('end', async () => {
   let j = JSON.parse(stdin);
+  visualCheck(j);
+  //full_check(j);
   console.log(j.length)
-  j = removeByIndex(j, duplicates(j)[1]);
-  full_check(j);
-  console.log(j.length)
-  await fs.promises.writeFile(new URL('./goood.json', import.meta.url), JSON.stringify(j));
 });

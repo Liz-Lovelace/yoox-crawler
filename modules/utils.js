@@ -4,6 +4,10 @@ export async function sleep(ms){
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+export function filterNumbers(str){
+  return str.replace(/\D/g, '');
+}
+
 export function splitIntoBatches(arr, batch_size){
   let batches = [];
   for (let i = 0; i < arr.length; i+= batch_size)
@@ -12,9 +16,9 @@ export function splitIntoBatches(arr, batch_size){
 }
 
 // this function concats all arrays from json files 
-// in a folder and returns them as one array
+// in a folder and returns them as one arrays     
 export async function concatFragmentFolder(folder_url){
-  let results = []
+  let results = [];
   let shard_names = await fs.promises.readdir(folder_url);
   for (let i = 0; i < shard_names.length - 1; i++){
     let shard = await fs.promises.readFile(new URL(`./${i}.json`, folder_url), 'utf8');
@@ -38,4 +42,32 @@ export function catalogLink(i, type){
     /*teen boys*/       9: `https://www.yoox.com/ru/%D0%B4%D0%BB%D1%8F%20%D0%BC%D0%B0%D0%BB%D1%8C%D1%87%D0%B8%D0%BA%D0%BE%D0%B2/%D0%BA%D0%BE%D0%BB%D0%BB%D0%B5%D0%BA%D1%86%D0%B8%D0%B8/%D0%BF%D0%BE%D0%B4%D1%80%D0%BE%D1%81%D1%82%D0%BA%D0%B8/shoponline/${i}#/dept=collboy_junior&gender=U&page=${i}`,
   }
   return types[type];
+}
+
+export function idInCache(id, cache){
+  for (let i = 0; i < cache.length; i++)
+    if (cache[i].id == id){
+      return i;
+    } 
+  return null;
+}
+
+export function updateCache(product, cache){ 
+  //this is inefficient, but it's important to get the index right.
+  let index = idInCache(product.id, cache);
+  if (index == null){
+    console.log('(updateCache) product isn\'t in cache!');
+    console.log(product);
+    return cache;
+  }
+  if (product['in_stock'] == true){
+    cache[index]['price'] = product['price'];
+    cache[index]['discount_price'] = product['discount_price'];
+  }
+  cache[index]['in_stock'] = product['in_stock'];
+  return cache;
+}
+
+export function urlFromId(id, dept){
+  return `https://www.yoox.com/ru/${id}/item#cod10=&dept=${dept}`;
 }

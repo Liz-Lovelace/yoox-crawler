@@ -1,8 +1,8 @@
 import cheerio from 'cheerio';
 import fs from 'fs';
 import { URL } from 'url';
-import { extractMaxCatalog, extractProductInfo, linksFromCatalog } from './modules/parsers.js';
-import { sleep, splitIntoBatches, concatFragmentFolder, catalogLink } from './modules/utils.js';
+import { extractMaxCatalog, extractProductInfo, extractItemsFromCatalog, linksFromCatalog } from './modules/parsers.js';
+import { sleep, splitIntoBatches, concatFragmentFolder, catalogLink, idInCache, updateCache } from './modules/utils.js';
 import Fetcher from './modules/fetcher.js';
 
 const fetcher = new Fetcher();
@@ -29,13 +29,39 @@ async function fetchAllProducts(links, batch_size = 100, shard_folder){
   }
 }
 
-async function main(){
-  console.time('getalllinks');
-  let links = await fetchAllLinks(1, [9]);
-  console.timeEnd('getalllinks');
-  //let links = JSON.parse(await fs.promises.readFile(new URL('./data/yoox/all_links.json', import.meta.url), 'utf8'));
-  console.time('fetch100');
-  await fetchAllProducts(links.slice(0, 100), 100, new URL('./data/yoox/result_shards/', import.meta.url));
-  console.timeEnd('fetch100');
+async function patrol(batch_size = 3, catalog_limit = null, categories = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]){
+  let cache_path = new URL('./cache.json',import.meta.url);
+  let cache = JSON.parse(await fs.promises.readFile(cache_path, 'utf-8'));
+  
+  let catalog_links = []
+  for (let category of categories){
+    if (!catalog_limit)
+      catalog_limit = extractMaxCatalog(await fetcher.fetchYooxHtml(catalogLink(1, category)));
+    
+    for (let i = 1; i <= catalog_limit; i++)
+      catalog_links.push(catalogLink(i, category));
+  }
+  
+  let catalog_link_batches = splitIntoBatches(catalog_links, batch_size);
+  for (let batch_i = 0; batch_i < catalog_link_batches.length; batch_i++){
+    let catalog_products = await fetcher.fetchParse(catalog_link_batches[batch_i], extractItemsFromCatalog, 500);
+    let uncached_products = [];
+    for (let i = 0; i < catalog_products.length; i++){
+      let cache_index = idInCache(catalog_products[i].id, cache);
+      if (cache_index != null)
+        updateCache(catalog_products[i], cache);
+      else {
+        if (catalog_products[i].in_stock){
+          uncached_products.push(catalog_products[i].url);
+        }
+      }
+    }
+    console.log(`${uncached_products.length} uncached products in batch ${batch_i}`);
+    let fetched_products = await fetcher.fetchParse(uncached_products, extractProductInfo, 500);
+    fetched_products.forEach(product => {cache.push(product);});
+    await fs.promises.writeFile(cache_path, JSON.stringify(cache));
+  }
+  
 }
-main();
+
+patrol();

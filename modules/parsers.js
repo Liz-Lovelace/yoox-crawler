@@ -1,5 +1,5 @@
 import cheerio from 'cheerio';
-
+import { urlFromId, filterNumbers } from './utils.js';
 // this funciton finds the total number of catalogs of
 // a category from a page of this category
 export function extractMaxCatalog(html){
@@ -85,14 +85,12 @@ export function extractProductInfo(html){
     //???
   
   // 13. Статус - в наличии или нет
-    //TODO: implement
+  info['in_stock'] = true;
   
   // 14. Дата и время добавления
-    //todo: implement
   info['discovery_time'] = Date.now();
   
   // 15. Дата и время обновления
-    //todo: implement
   info['update_time'] = Date.now();
   
   // 16. Дата и время отправки
@@ -106,3 +104,44 @@ export function extractProductInfo(html){
     //not found
   return info;
 }
+
+function extractDept(html){
+  let regex = new RegExp('<link rel="start" href="https://www.yoox.com/ru/.*dept=(.*).*>');
+  return regex.exec(html)[1];
+}
+
+export function extractItemsFromCatalog(html) {
+  let dept = extractDept(html);
+  //this operation takes by far the most time
+  let $ = cheerio.load(html);
+  let items = $('.itemContainer');
+  let itemProperties = [];
+  for (let i = 0; i < items.length; i++){
+    let in_stock = true;
+    if (items[i].attribs['class'].indexOf('soldout') != -1){
+      in_stock = false;
+      console.log(`(extractItemsFromCatalog) sold out i ${i}`);
+    }
+    let item$ = cheerio.load(items[i]);
+    let info = {}
+    info['update_time'] = Date.now();
+    info['id'] = items[i].attribs['data-current-cod10'];    
+    info['url'] = urlFromId(info['id'], dept);
+    info['in_stock'] = in_stock;
+    //console.log(`i ${i}, id ${info['id']} in_stock = ${info['in_stock']}`);
+    //this will set the price correctly if there's no discount
+    info['price'] = filterNumbers(item$('.price .fullprice').text().trim());
+    info['discount_price'] = info['price'];
+    if (!info['price']){
+      info['discount_price'] = filterNumbers(item$('.price .oldprice-wrapper .oldprice').text().trim());
+      info['price'] = filterNumbers(item$('.price .retail-newprice').text().trim());
+    }
+    itemProperties.push(info);
+  }
+  return itemProperties;
+}
+
+
+
+
+
