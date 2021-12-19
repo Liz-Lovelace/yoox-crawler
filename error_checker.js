@@ -73,7 +73,5 @@ let stdin = ''
 process.stdin.on('data', data => stdin += data);
 process.stdin.on('end', async () => {
   let j = JSON.parse(stdin);
-  visualCheck(j);
-  //full_check(j);
-  console.log(j.length)
+  console.log(j[203]);
 });

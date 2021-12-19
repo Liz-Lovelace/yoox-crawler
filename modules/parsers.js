@@ -124,7 +124,6 @@ export function extractItemsFromCatalog(html) {
     }
     let item$ = cheerio.load(items[i]);
     let info = {}
-    info['update_time'] = Date.now();
     info['id'] = items[i].attribs['data-current-cod10'];    
     info['url'] = urlFromId(info['id'], dept);
     info['in_stock'] = in_stock;
