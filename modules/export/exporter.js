@@ -35,8 +35,8 @@ async function main(){
     is_active: true,
     is_draft: false,
     is_prepaid: false,
-    createdAt: cache[i]['discovery_time'],
-    updatedAt: cache[i]['update_time'],
+    //createdAt: cache[i]['discovery_time'],
+    //updatedAt: cache[i]['update_time'],
   });
   //console.log(p);
   await p.save();
