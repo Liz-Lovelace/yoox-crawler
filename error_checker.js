@@ -1,7 +1,7 @@
 import fs from 'fs';
-
+import { idInCache } from './modules/utils.js';
 function fields_filled(j, optional_fields = []){
-  let required_fields = ['id', 'category', 'brand', 'price', 'discount_price', 'sizes', 'colors', 'photo_urls', 'discovery_time', 'update_time', 'send_time'];
+  let required_fields = ['id', 'category', 'brand', 'price', 'discount_price', 'sizes', 'colors', 'photo_urls'];
   //optional fields could be anything else, really
   required_fields = required_fields.concat(optional_fields);
   let problems = [];
@@ -69,9 +69,34 @@ function visualCheck(j, n = 1000){
   }
 }
 
-let stdin = ''
+function findDifferences(j, j_old){
+  for (let i_old = 0; i_old < j_old.length; i_old++){
+    let old_obj = j_old[i_old];
+    let new_pos = idInCache(old_obj['id'], j);
+    if (new_pos == null){
+      console.log(`oldi ${old_obj['id']} is missing from new cache!`);
+      continue;
+    }
+    if (j[new_pos]['in_stock'] != old_obj['in_stock']){
+      console.log(`oldi ${old_obj['id']} has diff in_stock from i ${new_pos}!`);
+      console.log(old_obj);
+      console.log(j[new_pos]);
+    }
+  }
+}
+
+/*let stdin = ''
 process.stdin.on('data', data => stdin += data);
 process.stdin.on('end', async () => {
   let j = JSON.parse(stdin);
-  console.log(j[203]);
+  full_check(j);
 });
+*/
+async function main(){
+  let j_old = await fs.promises.readFile('old_cache.json', 'utf-8');
+  let j = await fs.promises.readFile('./cache.json', 'utf-8');
+  j_old = JSON.parse(j_old);
+  j = JSON.parse(j);
+  findDifferences(j, j_old);
+}
+main();
