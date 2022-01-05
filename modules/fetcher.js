@@ -3,16 +3,6 @@ import { sleep } from './utils.js'
 
 export default class Fetcher {  
   async fetchYooxHtml(link){
-    /*let res = await axios.get('https://app.scrapingbee.com/api/v1', {
-      params: {
-        'api_key': 'G7IP40YLR11ZZ111QPOANEYYPBS5E2HMSQB2YHJYXRLGS9G9VBB959TDG0GIRQT80CNWNPQQQ4F4S165',
-        // this is wrong!
-        'url': 'https://yoox.com', 
-        'render_js': 'false',
-        'premium_proxy': 'true', 
-        'country_code':'ru'
-      }
-    });*/
     let res = await axios.get(link);
     return res.data;
   }

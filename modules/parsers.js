@@ -31,42 +31,28 @@ export function extractProductInfo(html){
   let data_regex = RegExp('<script id="__NEXT_DATA__" type="application/json">(.*)</script>');
   let data = JSON.parse(data_regex.exec(html)[1]).props;
   let info = {};
-  // 1. Артикул
   info['id'] = data['pageProps']['code10'];
   
-  // 2. Название
   let title = data['initialReduxState']['itemApi']['title'];
   if (title)
     info['title'] = title.replace(/[\r\n]/g, '');
   else
     info['title'] = null;
   
-  // 3. Категория
   info['category'] = data['initialReduxState']['itemApi']['descriptions']['MicroCategory'];
-  
-  // 4. Бренд
   info['brand'] = data['initialReduxState']['itemApi']['brand']['name'];
-  
-  // 5. Цена от поставщика
-    //not found
-  // 6. Цена от поставщика со скидкой
-    //not found
-  
-  // 7. Цена в магазине
+
   if (info['price'] = data['initialReduxState']['itemApi']['discountedPercentage'] > 0)
     info['price'] = data['initialReduxState']['itemApi']['priceOriginal']['transactional']['amount'];
   else
     info['price'] = data['initialReduxState']['itemApi']['priceFinal']['transactional']['amount']; 
     
-  // 8. Цена в магазине со скидкой
   info['discount_price'] = data['initialReduxState']['itemApi']['priceFinal']['transactional']['amount'];
   
-  // 9. Размеры
   info['sizes'] = [];
   for (let size_obj of data['initialReduxState']['itemApi']['sizes'])
      info['sizes'].push(size_obj['default']['text']);
   
-  // 10. Цвета
   info['colors'] = [];
   info['photo_urls'] = {};
   for (let color_obj of data['initialReduxState']['itemApi']['colors']){
@@ -81,27 +67,8 @@ export function extractProductInfo(html){
     }
   }
   
-  // 12. ID товара на сайте доноре
-    //???
-  
-  // 13. Статус - в наличии или нет
   info['in_stock'] = true;
-  
-  // 14. Дата и время добавления
-  info['discovery_time'] = Date.now();
-  
-  // 15. Дата и время обновления
-  info['update_time'] = Date.now();
-  
-  // 16. Дата и время отправки
-    //todo: implement
-  info['send_time'] = Date.now();
-  
-  // 17. Сортировка. (порядок сортировки, выставляется автоматически при парсинге)
-    // ???
-  
-  // 18. Коллекция
-    //not found
+
   return info;
 }
 
